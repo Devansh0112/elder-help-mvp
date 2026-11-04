@@ -86,6 +86,8 @@ describe('openai provider', () => {
       arguments: '{"type":"doctor","when":"next week"}',
     });
     await vi.waitFor(() => expect(s.callTool).toHaveBeenCalledWith('book_appointment', { type: 'doctor', when: 'next week' }));
+    await vi.waitFor(() => expect(sentTypes(s.channel).at(-1)).toBe('conversation.item.create'));
+    s.channel.server({ type: 'response.done' });
     await vi.waitFor(() => expect(sentTypes(s.channel).slice(-2)).toEqual(['conversation.item.create', 'response.create']));
     const item = s.channel.sent.at(-2) as { item: { type: string; call_id: string; output: string } };
     expect(item.item).toMatchObject({ type: 'function_call_output', call_id: 'call_1' });
@@ -129,5 +131,51 @@ describe('openai provider', () => {
     s.channel.server({ type: 'input_audio_buffer.speech_stopped' });
     await vi.advanceTimersByTimeAsync(8_000);
     expect(JSON.stringify(s.channel.sent)).not.toContain('Are you still there?');
+  });
+  it('waits for response.done and replies once for two calls in one response', async () => {
+    const s = setup();
+    await s.provider.start({ callTool: s.callTool, onEvent: s.onEvent });
+    s.channel.onopen?.();
+    const before = s.channel.sent.length;
+    const call = (id: string) =>
+      s.channel.server({ type: 'response.function_call_arguments.done', name: 'escalate', call_id: id, arguments: '{"issue":"x"}' });
+    call('a');
+    call('b');
+    await vi.waitFor(() => expect(s.callTool).toHaveBeenCalledTimes(2));
+    await vi.waitFor(() => expect(sentTypes(s.channel).filter((t) => t === 'conversation.item.create')).toHaveLength(2));
+    expect(sentTypes(s.channel).slice(before)).not.toContain('response.create');
+    s.channel.server({ type: 'response.done' });
+    await vi.waitFor(() => expect(sentTypes(s.channel).slice(before).filter((t) => t === 'response.create')).toHaveLength(1));
+  });
+
+  it('a server error before the session is configured switches to unavailable', async () => {
+    const s = setup();
+    await s.provider.start({ callTool: s.callTool, onEvent: s.onEvent });
+    s.channel.onopen?.();
+    s.channel.server({ type: 'error', error: { message: 'bad tools' } });
+    expect(s.events).toContainEqual({ type: 'error', reason: 'unavailable' });
+  });
+
+  it('a server error after session.updated is not fatal', async () => {
+    const s = setup();
+    await s.provider.start({ callTool: s.callTool, onEvent: s.onEvent });
+    s.channel.onopen?.();
+    s.channel.server({ type: 'session.updated' });
+    s.channel.server({ type: 'error', error: { message: 'response already active' } });
+    expect(s.events).not.toContainEqual({ type: 'error', reason: 'unavailable' });
+  });
+
+  it('stop() while the mic prompt is open tears down and never connects', async () => {
+    let grant: (m: MediaStream) => void = () => {};
+    const track = { stop: vi.fn() };
+    const s = setup({ getUserMedia: vi.fn(() => new Promise<MediaStream>((r) => (grant = r))) });
+    const started = s.provider.start({ callTool: s.callTool, onEvent: s.onEvent });
+    await s.provider.stop();
+    expect(s.events).toEqual([{ type: 'ended' }]);
+    grant({ getTracks: () => [track] } as unknown as MediaStream);
+    await started;
+    expect(track.stop).toHaveBeenCalled();
+    expect(s.deps.fetch).not.toHaveBeenCalled();
+    expect(s.pc.addTrack).not.toHaveBeenCalled();
   });
 });

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useEffectEvent, useRef, useState } from 'react';
 import { Captions } from '@/components/elder/Captions';
 import { MayaAvatar } from '@/components/elder/MayaAvatar';
+import { singleFlight } from '@/components/elder/singleFlight';
 import { ReminderBanner } from '@/components/elder/ReminderBanner';
 import { TextFallback } from '@/components/elder/TextFallback';
 import styles from '@/components/elder/elder.module.css';
@@ -122,8 +123,15 @@ export default function ElderPage() {
     return fallback;
   };
 
-  const ensureSession = async (initialPrompt?: string): Promise<VoiceProvider> => {
-    if (providerRef.current) return providerRef.current;
+  // One connect at a time: a reminder arriving while Talk is connecting joins that session instead of opening a second one.
+  const connectRef = useRef<((initialPrompt?: string) => Promise<VoiceProvider>) | null>(null);
+  const ensureSession = (initialPrompt?: string): Promise<VoiceProvider> => {
+    if (providerRef.current) return Promise.resolve(providerRef.current);
+    connectRef.current ??= singleFlight(connect);
+    return connectRef.current(initialPrompt);
+  };
+
+  const connect = async (initialPrompt?: string): Promise<VoiceProvider> => {
     setStatus('connecting');
     let info: SessionInfo | null = null;
     try {

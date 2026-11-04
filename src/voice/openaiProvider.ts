@@ -44,6 +44,14 @@ export function createOpenAIProvider(
   let ctx: { dueMedicine?: string } = {};
   let silenceTimer: ReturnType<typeof setTimeout> | null = null;
   let nudged = false;
+  // Set by stop(); start() checks it after every await so a stop during connect leaves nothing running.
+  let stopped = false;
+  // A session.update the server rejected leaves Maya without tools, so an error before this is fatal.
+  let configured = false;
+  // Tool outputs go back as one response.create, sent only after the calling response is done.
+  let pendingCalls = 0;
+  let replyDue = false;
+  let responseDone = true;
 
   const emit: StartOptions['onEvent'] = (e) => opts?.onEvent(e);
   const send = (event: Record<string, unknown>) => {
@@ -85,7 +93,15 @@ export function createOpenAIProvider(
       ? await opts.callTool(name, args)
       : { ok: false, message: COPY.toolFailed };
     send({ type: 'conversation.item.create', item: { type: 'function_call_output', call_id: e.call_id, output: JSON.stringify(result) } });
-    send({ type: 'response.create' });
+    pendingCalls--;
+    maybeReply();
+  }
+
+  function maybeReply() {
+    if (replyDue && pendingCalls === 0 && responseDone) {
+      replyDue = false;
+      send({ type: 'response.create' });
+    }
   }
 
   function onServerEvent(e: ServerEvent) {
@@ -115,7 +131,24 @@ export function createOpenAIProvider(
         armSilence();
         break;
       case 'response.function_call_arguments.done':
+        responseDone = false;
+        replyDue = true;
+        pendingCalls++;
         void runFunctionCall(e);
+        break;
+      case 'response.done':
+        responseDone = true;
+        maybeReply();
+        break;
+      case 'session.updated':
+        configured = true;
+        break;
+      case 'error':
+        console.error('Realtime error', e.error);
+        if (!configured) {
+          emit({ type: 'error', reason: 'unavailable' });
+          void provider.stop();
+        }
         break;
     }
   }
@@ -123,12 +156,19 @@ export function createOpenAIProvider(
   const provider: VoiceProvider = {
     async start(o) {
       opts = o;
+      stopped = false;
+      let stream: MediaStream;
       try {
-        mic = await deps.getUserMedia({ audio: true });
+        stream = await deps.getUserMedia({ audio: true });
       } catch (err) {
         emit({ type: 'error', reason: (err as Error)?.name === 'NotAllowedError' ? 'mic_denied' : 'unavailable' });
         return;
       }
+      if (stopped) {
+        stream.getTracks().forEach((t) => t.stop());
+        return;
+      }
+      mic = stream;
       try {
         pc = deps.createPeerConnection();
         pc.ontrack = (ev) => deps.playRemote(ev.streams[0]);
@@ -138,7 +178,7 @@ export function createOpenAIProvider(
             void provider.stop();
           }
         };
-        for (const track of mic.getTracks()) pc.addTrack(track, mic);
+        for (const track of stream.getTracks()) pc.addTrack(track, stream);
 
         channel = pc.createDataChannel('oai-events');
         channel.onmessage = (m) => {
@@ -171,16 +211,23 @@ export function createOpenAIProvider(
           armSilence();
         };
 
-        const offer = await pc.createOffer();
-        await pc.setLocalDescription(offer);
+        const conn = pc;
+        const offer = await conn.createOffer();
+        if (stopped) return;
+        await conn.setLocalDescription(offer);
+        if (stopped) return;
         const res = await deps.fetch(CALLS_URL, {
           method: 'POST',
           body: offer.sdp,
           headers: { authorization: `Bearer ${session.clientSecret}`, 'content-type': 'application/sdp' },
         });
+        if (stopped) return;
         if (!res.ok) throw new Error(`realtime call failed: ${res.status}`);
-        await pc.setRemoteDescription({ type: 'answer', sdp: await res.text() });
+        const answer = await res.text();
+        if (stopped) return;
+        await conn.setRemoteDescription({ type: 'answer', sdp: answer });
       } catch {
+        if (stopped) return;
         emit({ type: 'error', reason: 'unavailable' });
         await provider.stop();
       }
@@ -199,7 +246,8 @@ export function createOpenAIProvider(
     },
 
     async stop() {
-      if (!opts) return;
+      // Always tear down: start() may still be connecting even after opts was cleared.
+      stopped = true;
       const o = opts;
       opts = null;
       clearSilence();
@@ -210,7 +258,7 @@ export function createOpenAIProvider(
       channel = null;
       pc = null;
       mic = null;
-      o.onEvent({ type: 'ended' });
+      o?.onEvent({ type: 'ended' });
     },
   };
   return provider;
