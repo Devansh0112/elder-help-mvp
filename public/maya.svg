@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" role="img" aria-label="Maya">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="40%" r="70%">
+      <stop offset="0" stop-color="#f3e6d6"/>
+      <stop offset="1" stop-color="#d9c2a6"/>
+    </radialGradient>
+    <linearGradient id="skin" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#c98d68"/>
+      <stop offset="1" stop-color="#b47753"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="400" fill="url(#bg)"/>
+  <path d="M70 400c10-80 60-120 130-120s120 40 130 120z" fill="#2f5d8a"/>
+  <path d="M170 250h60v45c0 15-60 15-60 0z" fill="url(#skin)"/>
+  <path d="M105 190c-10-90 40-140 95-140s108 45 95 140c-8 45-20 75-30 90-20-60-40-80-65-80s-45 20-65 80c-10-15-22-45-30-90z" fill="#3a2a22"/>
+  <ellipse cx="200" cy="180" rx="72" ry="88" fill="url(#skin)"/>
+  <path d="M130 150c20-55 120-60 145-5-35-25-95-30-145 5z" fill="#3a2a22"/>
+  <ellipse cx="172" cy="178" rx="8" ry="9" fill="#2b1d17"/>
+  <ellipse cx="228" cy="178" rx="8" ry="9" fill="#2b1d17"/>
+  <path d="M158 160q14-8 28 0M214 160q14-8 28 0" stroke="#3a2a22" stroke-width="4" fill="none" stroke-linecap="round"/>
+  <path d="M200 185q-6 22 0 28" stroke="#9c6447" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <path d="M176 228q24 20 48 0" stroke="#8a3b30" stroke-width="5" fill="none" stroke-linecap="round"/>
+  <circle cx="160" cy="210" r="12" fill="#e08a7a" opacity=".35"/>
+  <circle cx="240" cy="210" r="12" fill="#e08a7a" opacity=".35"/>
+</svg>

@@ -10,6 +10,11 @@ function unavailable() {
   return Response.json({ error: 'voice_unavailable' }, { status: 503 });
 }
 
+// Tells the elder screen which mode it is in without minting a secret.
+export async function GET() {
+  return Response.json({ provider: process.env.VOICE_PROVIDER === 'fake' ? 'fake' : 'openai' });
+}
+
 export async function POST() {
   if (process.env.VOICE_PROVIDER === 'fake') return Response.json({ provider: 'fake' });
 

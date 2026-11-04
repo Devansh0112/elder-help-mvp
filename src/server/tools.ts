@@ -1,12 +1,13 @@
 import { randomInt } from 'node:crypto';
+import { COPY } from '@/config/copy';
 import type { Db } from './db';
 import { emitChange } from './events';
 import { localDayRange } from './time';
 
 export type ToolResult = { ok: boolean; message: string; data?: Record<string, unknown> };
 
-export const TOOL_FAILED_MESSAGE = "I couldn't do that, I've told your family.";
-export const ESCALATED_MESSAGE = "I've let your family know.";
+export const TOOL_FAILED_MESSAGE = COPY.toolFailed;
+export const ESCALATED_MESSAGE = COPY.escalated;
 
 // Thrown by a handler when it cannot do what was asked; runTool turns it into an alert.
 class ToolError extends Error {}

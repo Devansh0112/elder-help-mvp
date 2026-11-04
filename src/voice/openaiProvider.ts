@@ -1,13 +1,14 @@
 // OpenAI Realtime over WebRTC. Event names and shapes checked 2026-11-04 against the openai npm
 // package 7.50.0 type definitions (resources/realtime/realtime.d.ts, calls.d.ts); the hosted docs
 // were not reachable from the build machine. Not yet exercised against the live API.
+import { COPY } from '@/config/copy';
 import { household } from '@/config/household';
 import { mayaPrompt, mayaTools } from './mayaPrompt';
 import type { StartOptions, VoiceProvider } from './VoiceProvider';
 
 const CALLS_URL = 'https://api.openai.com/v1/realtime/calls';
 const SILENCE_MS = 10_000;
-export const STILL_THERE = 'Are you still there?';
+export const STILL_THERE = COPY.stillThere;
 
 export type RealtimeDeps = {
   getUserMedia: (c: MediaStreamConstraints) => Promise<MediaStream>;
@@ -82,7 +83,7 @@ export function createOpenAIProvider(
     }
     const result = opts
       ? await opts.callTool(name, args)
-      : { ok: false, message: "I couldn't do that, I've told your family." };
+      : { ok: false, message: COPY.toolFailed };
     send({ type: 'conversation.item.create', item: { type: 'function_call_output', call_id: e.call_id, output: JSON.stringify(result) } });
     send({ type: 'response.create' });
   }

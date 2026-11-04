@@ -1,3 +1,4 @@
+import { COPY } from '@/config/copy';
 import type { Db } from './db';
 import { emitChange } from './events';
 
@@ -7,7 +8,7 @@ export interface Summarizer {
   summarize(lines: TranscriptLine[]): Promise<string>;
 }
 
-export const SUMMARY_UNAVAILABLE = 'Summary unavailable';
+export const SUMMARY_UNAVAILABLE = COPY.summaryUnavailable;
 const EMPTY_SUMMARY = 'Short conversation, nothing to report.';
 
 export const fakeSummarizer: Summarizer = {
