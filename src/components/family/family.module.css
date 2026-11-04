@@ -1,0 +1,126 @@
+.page {
+  max-width: 64rem;
+  margin: 0 auto;
+  padding: 2rem 1.25rem 3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  font-size: 1.0625rem;
+  line-height: 1.45;
+}
+
+.header h1 {
+  font-size: 1.75rem;
+}
+
+.header p {
+  color: var(--muted);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 28rem), 1fr));
+  gap: 1.5rem;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.section h2 {
+  font-size: 1.25rem;
+}
+
+.section ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.card,
+.alert {
+  padding: 0.875rem 1rem;
+  border-radius: 0.75rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.alert {
+  background: var(--danger-bg);
+  border: 2px solid var(--danger);
+  color: var(--danger);
+}
+
+.alert .meta {
+  color: var(--danger);
+}
+
+.meta {
+  font-size: 0.875rem;
+  color: var(--muted);
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.summary {
+  white-space: pre-line;
+  margin-top: 0.25rem;
+}
+
+.badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.125rem 0.5rem;
+  border-radius: 999px;
+  background: #e5ecff;
+  color: var(--primary);
+}
+
+.medicine {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.medicine > span:nth-child(2) {
+  flex: 1;
+}
+
+.box,
+.check {
+  width: 1.5rem;
+  height: 1.5rem;
+  flex: none;
+  border-radius: 0.375rem;
+  border: 2px solid var(--muted);
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+}
+
+.check {
+  border-color: var(--ok);
+  background: var(--ok);
+  color: #fff;
+}
+
+.taken {
+  color: var(--ok);
+  font-weight: 700;
+}
+
+.notTaken {
+  color: var(--muted);
+}
+
+.empty {
+  color: var(--muted);
+}
+
+.capitalize {
+  text-transform: capitalize;
+}
