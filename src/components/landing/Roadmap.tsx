@@ -28,7 +28,13 @@ const STAGES = [
     nodeContent: <ArrowIcon />,
     list: '',
     title: 'From helper to companion',
-    items: ['Check-ins in a family member’s voice', 'A video avatar for Maya', 'Virtual friend groups'],
+    items: [
+      'Persistent agents that make, change, or cancel appointments',
+      'Agents that bring in family or a caretaker when needed',
+      'Check-ins in a family member’s voice',
+      'A video avatar for Maya',
+      'Virtual friend groups',
+    ],
   },
 ];
 

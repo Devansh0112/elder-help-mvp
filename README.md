@@ -76,5 +76,8 @@ Model defaults: realtime `gpt-realtime-2.1`, summaries `gpt-4.1-mini`. Override 
 1. Family-voice check-ins (cloned voice + family photo, clearly labelled as AI).
 2. Real SMS or email for escalations.
 3. Video avatar replacing the glowing portrait.
+4. Persistent care agents that remember the person and keep working after the conversation ends:
+   making, rescheduling, or cancelling appointments; connecting with family when needed; and
+   connecting with a caretaker when required.
 
 The Maya portrait is a placeholder illustration (see `public/CREDITS.md`).

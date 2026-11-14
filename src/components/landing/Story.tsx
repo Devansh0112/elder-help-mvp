@@ -13,8 +13,10 @@ export function Vision() {
           <em>less worrying</em>.
         </p>
         <p className={s.body}>
-          Today Maya is a helper. Next she becomes a companion: check-ins in a familiar family voice, a face that talks
-          back, and small groups of friends to chat with, always clearly labelled as AI.
+          Today Maya is a helper. Next, persistent AI agents work behind her: they remember the person, make, change,
+          or cancel appointments, and bring in family or a caretaker when someone is needed. And she becomes a
+          companion, with check-ins in a familiar family voice and a face that talks back, always clearly labelled as
+          AI.
         </p>
       </div>
     </section>
